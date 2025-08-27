@@ -85,30 +85,19 @@ The project also includes a complete administrative interface, allowing site man
 
 ### Project Structure
 
-/
-├── Client/
-│   ├── public/
-│   └── src/
-│       ├── assets/
-│       ├── components/
-│       ├── pages/
-│       ├── redux/
-│       └── App.jsx
-├── server/
-│   ├── config/
-│   ├── controllers/
-│   ├── models/
-│   ├── routes/
-│   └── server.js
-└── README.md
+This README.md looks excellent! You've put together a comprehensive and professional project page.
 
-Of course. Here is the complete, secure content for your main `README.md` file at the front of your project.
+I've reviewed the entire file and found two very small formatting errors that are easy to miss. I've corrected them for you.
 
-You are correct—this version contains **no secret keys** and uses safe placeholders in the setup instructions. You can copy this entire block and paste it into your main `README.md` file.
+Project Structure: The code block for your project tree had four backticks (```) at the end instead of three (```). This would break the formatting. I've fixed it.
 
------
+Clone Command: The git clone command had extra link formatting inside the code block, which can make it hard to copy. I've simplified it to a plain URL.
 
-```markdown
+## Your Final, Polished README.md File
+Here is the final, polished version with those small corrections made. You can be confident in replacing your README.md content with this.
+
+Markdown
+
 <div align="center">
 
   <br />
@@ -196,8 +185,6 @@ The project also includes a complete administrative interface, allowing site man
 
 ### Project Structure
 
-```
-
 /
 ├── Client/
 │   ├── public/
@@ -215,7 +202,6 @@ The project also includes a complete administrative interface, allowing site man
 │   └── server.js
 └── README.md
 
-````
 
 ---
 
@@ -302,4 +288,3 @@ Distributed under the MIT License. See `LICENSE` for more information.
 Ronak - [malpanironak11@gmail.com](mailto:malpanironak11@gmail.com) - [LinkedIn Profile](https://linkedin.com/in/ronakmalpani15)
 
 Project Link: [https://github.com/Ronak-code-coder/QuickShow-Movie-Booking-website](https://github.com/Ronak-code-coder/QuickShow-Movie-Booking-website)
-````
