@@ -10,18 +10,6 @@
     <br />
     <a href="https://github.com/Ronak-code-coder/QuickShow-Movie-Booking-website"><strong>Explore the Repo »</strong></a>
     <br />
-    <br />
-    <a href="https-your-live-demo-link"><strong>View Live Demo »</strong></a>
-    ·
-    <a href="https://github.com/Ronak-code-coder/QuickShow-Movie-Booking-website/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/Ronak-code-coder/QuickShow-Movie-Booking-website/issues">Request Feature</a>
-  </p>
-</div>
-
-<div align="center">
-  <p>
-    <img src="./docs/YOUR_BANNER_IMAGE.png" alt="QuickShow Banner">
   </p>
 </div>
 
@@ -179,7 +167,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ### Acknowledgements
 
--   A big thank you to **[Creator's Name]** for their insightful tutorial video **[Link to Video]** which was a great help in developing parts of this application.
+-   A big thank you to **[GreatStack]** for their insightful tutorial video **[Link to Video]** which was a great help in developing parts of this application.
 
 ---
 
