@@ -2,21 +2,20 @@ import { StarIcon } from 'lucide-react'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import timeformat from '../lib/timeformat'
+import { useAppContext } from '../context/AppContext'
 
 const MovieCard = ({ movie }) => {
     const navigate = useNavigate()
+    const {image_base_url} = useAppContext()
 
     return (
         <div className='flex flex-col justify-between p-3 bg-gray-800 rounded-2xl hover:-translate-y-1 transition duration-300 w-66'>
-            <img
-                onClick={() => {
+            <img onClick={() => {
                     navigate(`/movies/${movie._id}`)
                     scrollTo(0, 0)
                 }}
-                src={`https://image.tmdb.org/t/p/w500${movie.backdrop_path}`}
-                alt={movie.title}
-                className='rounded-lg h-52 w-full object-cover object-right-bottom cursor-pointer'
-            />
+                src={image_base_url + movie.backdrop_path} alt=""
+                className='rounded-lg h-52 w-full object-cover object-right-bottom cursor-pointer'/>
 
             <p className='font-semibold mt-2 truncate'>{movie.title}</p>
 
@@ -36,7 +35,9 @@ const MovieCard = ({ movie }) => {
                 </button>
                 <p className='flex items-center gap-1 text-sm text-gray-400 mt-1 pr-1'>
                     <StarIcon className='w-4 h-4 text-primary fill-primary' />
-                    {movie.vote_average.toFixed(1)}
+                    {Array.isArray(movie.vote_average)
+    ? parseFloat(movie.vote_average[0].$numberDouble).toFixed(1)
+    : movie.vote_average.toFixed(1)}
                 </p>
             </div>
         </div>
