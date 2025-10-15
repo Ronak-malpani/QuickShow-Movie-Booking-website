@@ -11,6 +11,7 @@ import adminRouter from './routes/adminRoutes.js';
 import userRouter from './routes/userRoutes.js';
 import { stripeWebhooks } from './controllers/stripeWebhooks.js';
 
+
 const app = express();
 const port = 3000;
 
@@ -23,6 +24,7 @@ app.use('/api/stripe',express.raw({type:'application/json'}),stripeWebhooks)
 app.use(express.json())
 app.use(cors())
 app.use(clerkMiddleware())
+
 
 //API Routes
 app.get('/', (req,res)=>res.send('Server is Live!'))
