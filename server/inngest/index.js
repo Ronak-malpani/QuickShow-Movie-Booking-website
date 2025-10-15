@@ -76,7 +76,8 @@ of booking created if payment is not made*/
             }
         })
     }
- )
+)
+
 //Inngest Function to send email when user books a show
 
 const sendBookingConfirmationEmail = inngest.createFunction(
@@ -89,13 +90,12 @@ const sendBookingConfirmationEmail = inngest.createFunction(
             path: 'show',
             populate: { path: "movie", model: "Movie" }
         }).populate('user');
-
+        
         // The HTML needs to be a string assigned to a property, like 'html'
         await sendEmail({
             to: booking.user.email,
             subject: `Payment Confirmation: "${booking.show.movie.title}" booked!`,
-            body: `
-                <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+            body: ` <div style="font-family: Arial, sans-serif; line-height: 1.5;">
                     <h2>Hi ${booking.user.name},</h2>
                     
                     <p>
@@ -121,7 +121,7 @@ const sendBookingConfirmationEmail = inngest.createFunction(
             `
         });
     }
-);
+)
     
             
 
