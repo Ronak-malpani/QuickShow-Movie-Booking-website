@@ -2,7 +2,7 @@ import { createContext,useContext,useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth,useUser } from "@clerk/clerk-react";
 import { useLocation,useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL
 
