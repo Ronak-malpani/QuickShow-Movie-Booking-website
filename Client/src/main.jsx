@@ -1,22 +1,28 @@
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
-import { BrowserRouter } from 'react-router-dom'
-import { ClerkProvider } from '@clerk/clerk-react'
-import {AppProvider} from './context/AppContext.jsx'
+// File: src/main.jsx
 
- const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { ClerkProvider } from '@clerk/clerk-react';
+import { AppProvider } from './context/AppContext.jsx';
+import App from './App.jsx';
+import './index.css';
 
-if (!PUBLISHABLE_KEY) {
-  throw new Error('Missing Publishable Key')
+const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+if (!CLERK_PUBLISHABLE_KEY) {
+  throw new Error('Missing Publishable Key');
 }
 
-createRoot(document.getElementById('root')).render(
-  <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
     <BrowserRouter>
-    <AppProvider >
-      <App />
-    </AppProvider>
-  </BrowserRouter>
-  </ClerkProvider>, 
-)
+      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+        {/* AppProvider MUST wrap App */}
+        <AppProvider> 
+          <App />
+        </AppProvider>
+      </ClerkProvider>
+    </BrowserRouter>
+  </React.StrictMode>
+);
