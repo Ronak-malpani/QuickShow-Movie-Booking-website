@@ -15,16 +15,13 @@ import movieRouter from "./routes/movieRoutes.js";
 import releaseRoutes from "./routes/releaseRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
-import bodyParser from "body-parser";  
+import bodyParser from "body-parser";
 
 import emailRouter from "./routes/emailRoutes.js";
-import  { sendEmail } from "./configs/nodemailer.js";
-
-
+import { sendEmail } from "./configs/nodemailer.js";
 import debugRoute from "./routes/debugRoute.js";
-app.use("/api", debugRoute);
 
-const app = express();
+const app = express(); // ✅ must come before app.use()
 const port = 3001;
 
 // --- PATH SETUP ---
@@ -38,23 +35,22 @@ await connectDB();
 // Serve static files FIRST
 app.use("/Theater_Img", express.static(staticPath));
 
-//  STRIPE WEBHOOK (must come before express.json)
+// STRIPE WEBHOOK (must come before express.json)
 app.post(
   "/api/webhook",
   bodyParser.raw({ type: "application/json" }),
   stripeWebhooks
 );
 
-
-//  Apply other middleware AFTER webhook route
+// Apply middleware AFTER webhook route
 app.use(cors());
 app.use(clerkMiddleware());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
-//  Register other routes
+// Register routes
 app.get("/", (req, res) => res.send("Server is Live!"));
+app.use("/api", debugRoute);
 app.use("/api/inngest", serve({ client: inngest, functions }));
 app.use("/api/show", showRouter);
 app.use("/api/booking", bookingRouter);
@@ -65,8 +61,9 @@ app.use("/api/movies", movieRouter);
 app.use("/api/releases", releaseRoutes);
 app.use("/api/email", emailRouter);
 
-
-//  Start server
+// ✅ For local testing (comment out before deploying to Vercel if using serverless)
 app.listen(port, () =>
-  console.log(` Server Listening at http://localhost:${port}`)
+  console.log(`Server Listening at http://localhost:${port}`)
 );
+
+export default app; // ✅ for Vercel deployment
