@@ -21,6 +21,7 @@ import Theaters from './pages/Theaters'
 import Release from './pages/Release';
 
 
+console.log("Backend URL:", import.meta.env.VITE_SERVER_URL);
 
 const App=()=>{
   const isAdminRoute= useLocation().pathname.startsWith('/admin')
