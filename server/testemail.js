@@ -1,19 +1,17 @@
 import dotenv from "dotenv";
+import { sendEmail } from "./configs/nodemailer.js";
+
 dotenv.config();
 
-import sendEmail from "./configs/nodemailer.js";
-
-const test = async () => {
+(async () => {
   try {
-    const response = await sendEmail({
-      to: "yourtestemail@example.com",
-      subject: "Test Email from Brevo",
-      body: "<h2>This is a test email from Nodemailer + Brevo setup</h2>",
+    await sendEmail({
+      to: "malpanironak11@gmail.com", // 👈 your test email address
+      subject: "QuickShow Email Test",
+      html: "<h1>Test Email from QuickShow 🎬</h1><p>This is a test email sent from Nodemailer via Brevo SMTP.</p>",
     });
-    console.log("✅ Email sent successfully:", response);
-  } catch (err) {
-    console.error("❌ Error sending email:", err);
+    console.log("✅ Test email sent successfully!");
+  } catch (error) {
+    console.error("❌ Error sending email:", error);
   }
-};
-
-test();
+})();

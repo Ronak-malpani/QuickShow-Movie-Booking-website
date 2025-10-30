@@ -4,84 +4,85 @@ import { Inngest } from "inngest";
 import User from "../models/User.js";
 import Booking from "../models/Booking.js";
 import Show from "../models/Show.js";
-import sendEmail from "../configs/nodemailer.js";
+import { sendEmail } from "../configs/nodemailer.js";
 
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "movie-ticket-booking" });
 
 // --- (keep syncUserCreation, syncUserDeletion, syncUserUpdation) ---
 const syncUserCreation = inngest.createFunction(
-    { id: 'sync-user-from-clerk' },
-    { event: 'clerk/user.created' },
-    async ({ event }) => {
-        const { id, first_name, last_name, email_addresses, image_url } = event.data
-        const userData = {
-            _id: id,
-            email: email_addresses[0].email_address,
-            name: first_name + ' ' + last_name,
-            image: image_url
-        }
-        await User.create(userData)
-    }
+    { id: 'sync-user-from-clerk' },
+     { event: 'clerk/user.created' },
+     async ({ event }) => {
+     const { id, first_name, last_name, email_addresses, image_url } = event.data
+     const userData = {
+     _id: id,
+     email: email_addresses[0].email_address,
+     name: first_name + ' ' + last_name,
+     image: image_url
+     }
+     await User.create(userData)
+     }
 );
+
 const syncUserDeletion = inngest.createFunction(
-    { id: 'delete-user-from-clerk' },
-    { event: 'clerk/user.deleted' },
-    async ({ event }) => {
-        const { id } = event.data
-        await User.findByIdAndDelete(id)
-    }
+ { id: 'delete-user-from-clerk' },
+ { event: 'clerk/user.deleted' },
+ async ({ event }) => {
+ const { id } = event.data
+ await User.findByIdAndDelete(id)
+}
 );
 const syncUserUpdation = inngest.createFunction(
-    { id: 'update-user-from-clerk' },
-    { event: 'clerk/user.updated' },
-    async ({ event }) => {
-        const { id, first_name, last_name, email_addresses, image_url } = event.data
-        const userData = {
-            _id: id,
-            email: email_addresses[0].email_address,
-            name: first_name + ' ' + last_name,
-            image: image_url
-        }
-        await User.findByIdAndUpdate(id, userData)
-    }
+ { id: 'update-user-from-clerk' },
+ { event: 'clerk/user.updated' },
+ async ({ event }) => {
+ const { id, first_name, last_name, email_addresses, image_url } = event.data
+ const userData = {
+ _id: id,
+ email: email_addresses[0].email_address,
+ name: first_name + ' ' + last_name,
+ image: image_url
+ }
+ await User.findByIdAndUpdate(id, userData)
+ }
 );
 // --- END SYNC FUNCTIONS ---
 
 
 // --- (keep releaseSeatsAndDeleteBooking) ---
 const releaseSeatsAndDeleteBooking = inngest.createFunction(
-    { id: 'release-seats-delete-booking' },
-    { event: "app/checkpayment" },
-    async ({ event, step }) => {
+     { id: 'release-seats-delete-booking' },
+     { event: "app/checkpayment" },
+     async ({ event, step }) => {
         // Stripe's minimum expiry is 30 mins
-        const thirtyMinutesLater = new Date(Date.now() + 30 * 60 * 1000); 
-        await step.sleepUntil('wait-for-30-minutes', thirtyMinutesLater);
+     const thirtyMinutesLater = new Date(Date.now() + 30 * 60 * 1000); 
+     await step.sleepUntil('wait-for-30-minutes', thirtyMinutesLater);
 
-        await step.run('check-payment-status', async () => {
-            const bookingId = event.data.bookingId;
-            const booking = await Booking.findById(bookingId);
+     await step.run('check-payment-status', async () => {
+     const bookingId = event.data.bookingId;
+     const booking = await Booking.findById(bookingId);
 
-            // Only run if the booking *still exists* AND is *not paid*
-            if (booking && !booking.isPaid) { 
-                console.log(`Payment not received for booking ${bookingId}. Releasing seats.`);
-                const show = await Show.findById(booking.show);
-                if (show && show.occupiedSeats) {
-                    booking.bookedSeats.forEach((seat) => {
-                        delete show.occupiedSeats[seat];
-                    });
-                    show.markModified('occupiedSeats');
-                    await show.save();
-                }
-                await Booking.findByIdAndDelete(booking._id);
-                console.log(`Booking ${bookingId} deleted.`);
-            } else if (!booking) {
-                console.log(`Booking ${bookingId} was already processed (paid). No action taken.`);
-t          } else if (booking.isPaid) {
-                console.log(`Booking ${bookingId} was paid. No action taken.`);
-            }
-        });
-    }
+     // Only run if the booking *still exists* AND is *not paid*
+     if (booking && !booking.isPaid) { 
+     console.log(`Payment not received for booking ${bookingId}. Releasing seats.`);
+    const show = await Show.findById(booking.show);
+    if (show && show.occupiedSeats) {
+     booking.bookedSeats.forEach((seat) => {
+     delete show.occupiedSeats[seat];
+     });
+     show.markModified('occupiedSeats');
+     await show.save();
+     }
+     await Booking.findByIdAndDelete(booking._id);
+     console.log(`Booking ${bookingId} deleted.`);
+     } else if (!booking) {
+ console.log(`Booking ${bookingId} was already processed (paid). No action taken.`);
+ } else if (booking.isPaid) {
+console.log(`Booking ${bookingId} was paid. No action taken.`);
+     }
+    });
+    }
 );
 
 // --- UPDATED EMAIL FUNCTION ---

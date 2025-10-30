@@ -75,7 +75,10 @@ export const createBooking = async(req,res) =>{
             line_items: line_items,
             mode:'payment',
             metadata: {
-                bookingId: booking._id.toString()  
+                bookingId: booking._id.toString(),
+                movieName: showData.movie.title, // ✅ added
+                showTime: showData.dateTime,     // ✅ added
+                email: req.body.email || "test@example.com", // ✅ temporary fallback
             },
             expires_at:Math.floor(Date.now()/1000)+30*60, //Expires in 30 minutes
              
