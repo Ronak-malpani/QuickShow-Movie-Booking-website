@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import connectDB from "./configs/db.js";
-import { requireAuth } from "@clerk/express"; 
+import { requireAuth } from "@clerk/express";
 import { serve } from "inngest/express";
 import { inngest, functions } from "./inngest/index.js";
 import showRouter from "./routes/showRoutes.js";
@@ -85,6 +85,11 @@ app.get("/api/test-env", (req, res) => {
   });
 });
 
+// ✅ Debug route (added for testing)
+app.get("/api/debug", (req, res) => {
+  res.json({ message: "Debug route active", protectAdminBypassed: true });
+});
+
 // ✅ Only run server locally
 if (process.env.NODE_ENV !== "production") {
   app.listen(port, () =>
@@ -92,6 +97,7 @@ if (process.env.NODE_ENV !== "production") {
   );
 }
 
+// 404 fallback (keep last)
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found", path: req.originalUrl });
 });

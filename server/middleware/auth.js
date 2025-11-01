@@ -27,6 +27,8 @@ import { clerkClient } from "@clerk/clerk-sdk-node";
     return res.status(403).json({ message: "Forbidden" });
   }
 };*/
+// middleware/auth.js
 export const protectAdmin = (req, res, next) => {
-  next(); // temporarily bypass Clerk auth for debugging
+  console.log("⚠️ protectAdmin bypassed for debugging");
+  next();
 };
