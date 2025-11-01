@@ -75,10 +75,6 @@ app.use("/api/releases", releaseRoutes);
 app.use("/api/email", emailRouter);
 
 // ✅ For local testing (comment out before deploying to Vercel if using serverless)
-app.listen(port, () =>
-  console.log(`Server Listening at http://localhost:${port}`)
-);
-
 app.get("/api/test-env", (req, res) => {
   res.json({
     TMDB_API_KEY: process.env.TMDB_API_KEY ? "✅ Loaded" : "❌ Missing",
@@ -86,4 +82,11 @@ app.get("/api/test-env", (req, res) => {
   });
 });
 
-export default app; // ✅ for Vercel deployment
+// ✅ Only run server locally
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () =>
+    console.log(`Server Listening at http://localhost:${port}`)
+  );
+}
+
+export default app; // ✅ Vercel will use this
