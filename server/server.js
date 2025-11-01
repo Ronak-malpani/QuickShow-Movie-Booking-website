@@ -79,4 +79,11 @@ app.listen(port, () =>
   console.log(`Server Listening at http://localhost:${port}`)
 );
 
+app.get("/api/test-env", (req, res) => {
+  res.json({
+    TMDB_API_KEY: process.env.TMDB_API_KEY ? "✅ Loaded" : "❌ Missing",
+    TMDB_READ_ACCESS_TOKEN: process.env.TMDB_READ_ACCESS_TOKEN ? "✅ Loaded" : "❌ Missing"
+  });
+});
+
 export default app; // ✅ for Vercel deployment
