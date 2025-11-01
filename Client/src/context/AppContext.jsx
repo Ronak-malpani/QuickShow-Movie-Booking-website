@@ -1,12 +1,10 @@
 // File: src/context/AppContext.jsx
 
 import { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
 import { useAuth, useUser } from "@clerk/clerk-react"; 
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-// Note: Removed the unused import 'MovieCard' for clean code
-
+import API from "../api/axiosInstance"; // ✅ our configured axios
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
@@ -20,17 +18,17 @@ export const AppProvider = ({ children }) => {
     const { getToken, signOut } = useAuth(); 
     const location = useLocation();
     const navigate = useNavigate();
-
+    
     const fetchIsAdmin = async () => {
         try {
-            const { data } = await axios.get('/api/admin/is-admin', {
+            const { data } = await API.get('/api/admin/is-admin', {
                 headers: { Authorization: `Bearer ${await getToken()}` }
             });
             setIsAdmin(data.isAdmin);
 
             if (!data.isAdmin && location.pathname.startsWith('/admin')) {
                 navigate('/');
-                toast.error('You are not authorized to fetch admin dashboard');
+                toast.error('You are not authorized to access the admin dashboard');
             }
         } catch (error) {
             console.error("Error in fetchIsAdmin:", error);
@@ -39,30 +37,29 @@ export const AppProvider = ({ children }) => {
     
     const fetchShows = async () => { 
         try {
-            const { data } = await axios.get('/api/show/all'); 
+            const { data } = await API.get('/api/show/all'); 
             if (data.success) {
                 setShows(data.shows);
             } else {
                 toast.error(data.message);
             }
-        }
-        catch (error) {
+        } catch (error) {
             console.error(error);
         }
     };
     
     const fetchFavoriteMovies = async () => { 
         try {
-            const { data } = await axios.get('/api/user/favorites',{headers:
-                {Authorization: `Bearer ${await getToken() }`}})
-                if(data.success){
-                    setFavoriteMovies(data.movies)
-                }
-                else{
-                    toast.error(data.message)
-                }
-        }catch(error){
-            console.error(error)
+            const { data } = await API.get('/api/user/favorites', {
+                headers: { Authorization: `Bearer ${await getToken()}` }
+            });
+            if (data.success) {
+                setFavoriteMovies(data.movies);
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            console.error(error);
         }
     };
 
@@ -78,7 +75,6 @@ export const AppProvider = ({ children }) => {
         }
     }, [user, getToken]);
 
-    // --- LOGOUT HANDLER ---
     const handleLogout = async () => {
         await signOut();
         navigate('/');
@@ -86,11 +82,9 @@ export const AppProvider = ({ children }) => {
         setFavoriteMovies([]);
         toast.success("Signed out successfully.");
     };
-    // --- END NEW HANDLER ---
-
 
     const value = {
-        axios,
+        API,
         fetchIsAdmin,
         user, getToken, navigate, isAdmin,
         shows,
@@ -103,6 +97,6 @@ export const AppProvider = ({ children }) => {
             {children}
         </AppContext.Provider>
     );
-}
+};
 
 export const useAppContext = () => useContext(AppContext);
