@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import connectDB from "./configs/db.js";
-import { clerkMiddleware } from "@clerk/express";
+import { requireAuth } from "@clerk/express"; // ✅ only import requireAuth
 import { serve } from "inngest/express";
 import { inngest, functions } from "./inngest/index.js";
 import showRouter from "./routes/showRoutes.js";
@@ -16,12 +16,10 @@ import releaseRoutes from "./routes/releaseRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import bodyParser from "body-parser";
-
 import emailRouter from "./routes/emailRoutes.js";
-import { sendEmail } from "./configs/nodemailer.js";
 import debugRoute from "./routes/debugRoute.js";
 
-const app = express(); // ✅ must come before app.use()
+const app = express();
 const port = 3001;
 
 // --- PATH SETUP ---
@@ -35,50 +33,55 @@ await connectDB();
 // Serve static files FIRST
 app.use("/Theater_Img", express.static(staticPath));
 
-// STRIPE WEBHOOK (must come before express.json)
-app.post(
-  "/api/webhook",
-  bodyParser.raw({ type: "application/json" }),
-  stripeWebhooks
-);
+// STRIPE WEBHOOK
+app.post("/api/webhook", bodyParser.raw({ type: "application/json" }), stripeWebhooks);
 
-// Apply middleware AFTER webhook route
+// --- CORS ---
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://quick-show-movie-booking-website.vercel.app",
+  "https://quick-show-movie-booking-website-6qo2zih76.vercel.app",
+  "https://quick-show-movie-booking-we-git-7c6c86-ronaks-projects-305c69af.vercel.app",
+];
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://quick-show-movie-booking-website.vercel.app",
-      /\.vercel\.app$/, // ✅ covers all vercel deployments including -elf1n2yiz
-    ],
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log("❌ CORS blocked:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
   })
 );
 
-
-
-app.use(clerkMiddleware());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Register routes
+// ✅ Public routes — no authentication
 app.get("/", (req, res) => res.send("Server is Live!"));
 app.use("/api", debugRoute);
-app.use("/api/inngest", serve({ client: inngest, functions }));
 app.use("/api/show", showRouter);
-app.use("/api/booking", bookingRouter);
-app.use("/api/admin", adminRouter);
-app.use("/api/user", userRouter);
-app.use("/api/theaters", theaterRouter);
 app.use("/api/movies", movieRouter);
+app.use("/api/theaters", theaterRouter);
 app.use("/api/releases", releaseRoutes);
 app.use("/api/email", emailRouter);
+app.use("/api/inngest", serve({ client: inngest, functions }));
 
-// ✅ For local testing (comment out before deploying to Vercel if using serverless)
+// ✅ Protected routes — require login
+app.use("/api/booking", requireAuth(), bookingRouter);
+app.use("/api/admin", requireAuth(), adminRouter);
+app.use("/api/user", requireAuth(), userRouter);
+
+// ✅ For local testing
 app.get("/api/test-env", (req, res) => {
   res.json({
     TMDB_API_KEY: process.env.TMDB_API_KEY ? "✅ Loaded" : "❌ Missing",
-    TMDB_READ_ACCESS_TOKEN: process.env.TMDB_READ_ACCESS_TOKEN ? "✅ Loaded" : "❌ Missing"
+    TMDB_READ_ACCESS_TOKEN: process.env.TMDB_READ_ACCESS_TOKEN ? "✅ Loaded" : "❌ Missing",
   });
 });
 
@@ -92,6 +95,5 @@ if (process.env.NODE_ENV !== "production") {
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found", path: req.originalUrl });
 });
-
 
 export default app; // ✅ Vercel will use this
