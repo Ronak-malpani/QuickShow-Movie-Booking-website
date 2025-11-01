@@ -46,15 +46,15 @@ app.post(
 app.use(
   cors({
     origin: [
-      "http://localhost:5173", // local dev
-      "https://quick-show-movie-booking-website.vercel.app", // main frontend
-      "https://quick-show-movie-booking-website-izkunrf28.vercel.app", // deployment alias
-      /\.vercel\.app$/, // allow all vercel preview URLs
+      "http://localhost:5173",
+      "https://quick-show-movie-booking-website.vercel.app",
+      /\.vercel\.app$/, // ✅ covers all vercel deployments including -elf1n2yiz
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
   })
 );
+
 
 
 app.use(clerkMiddleware());
