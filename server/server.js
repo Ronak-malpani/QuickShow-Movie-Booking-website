@@ -89,4 +89,9 @@ if (process.env.NODE_ENV !== "production") {
   );
 }
 
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found", path: req.originalUrl });
+});
+
+
 export default app; // ✅ Vercel will use this
