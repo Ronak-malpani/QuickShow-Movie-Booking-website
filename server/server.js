@@ -43,7 +43,20 @@ app.post(
 );
 
 // Apply middleware AFTER webhook route
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173", // local dev
+      "https://quick-show-movie-booking-website.vercel.app", // main frontend
+      "https://quick-show-movie-booking-website-izkunrf28.vercel.app", // deployment alias
+      /\.vercel\.app$/, // allow all vercel preview URLs
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
+  })
+);
+
+
 app.use(clerkMiddleware());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
