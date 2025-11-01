@@ -7,41 +7,49 @@ import Theater from '../models/Theater.js'; // Import Theater model
 import { inngest } from "../inngest/index.js";
 
 // Fetches 50 local movies for the admin panel & fixes vote_average
+
 export const getNowPlayingMovies = async (req, res) => {
-    console.log("Fetching movies from LOCAL database for admin panel...");
-    try {
-        const localMovies = await Movie.find({ 
-            poster_path: { $ne: null, $ne: "" } 
-        }).sort({ release_date: -1 }).limit(50);
+  try {
+    console.log("Fetching now-playing movies from TMDb...");
 
-        const formattedMovies = localMovies.map(movie => {
-            const movieObject = movie.toObject();
-            movieObject.id = movieObject._id; 
+    const { data } = await axios.get(
+      "https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=1",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.TMDB_READ_ACCESS_TOKEN}`,
+          accept: "application/json",
+        },
+      }
+    );
 
-            let voteAvg = 0;
-            if (Array.isArray(movieObject.vote_average) && movieObject.vote_average.length > 0) {
-                if (movieObject.vote_average[0] && typeof movieObject.vote_average[0] === 'object' && movieObject.vote_average[0]['$numberInt']) {
-                    voteAvg = parseFloat(movieObject.vote_average[0]['$numberInt']);
-                } else if (typeof movieObject.vote_average[0] === 'number') {
-                    voteAvg = movieObject.vote_average[0];
-                }
-            } else if (typeof movieObject.vote_average === 'number') {
-                voteAvg = movieObject.vote_average;
-            }
-            movieObject.vote_average = voteAvg;
+    const movies = data.results;
 
-            movieObject.vote_count = movieObject.vote_count || 0;
-            movieObject.release_date = movieObject.release_date || 'N/A';
-            
-            return movieObject;
+    // Save new movies to local DB if they don't already exist
+    for (const movie of movies) {
+      const existing = await Movie.findById(movie.id);
+      if (!existing) {
+        await Movie.create({
+          _id: movie.id,
+          title: movie.title,
+          overview: movie.overview,
+          poster_path: movie.poster_path,
+          backdrop_path: movie.backdrop_path,
+          release_date: movie.release_date,
+          vote_average: movie.vote_average,
+          vote_count: movie.vote_count,
+          original_language: movie.original_language,
         });
-
-        console.log(`Found ${formattedMovies.length} local movies with posters.`);
-        res.json({ success: true, movies: formattedMovies });
-    } catch (error) {
-        console.error("Error fetching local movies:", error);
-        res.status(500).json({ success: false, message: "Failed to fetch local movies." });
+      }
     }
+
+    res.status(200).json({ success: true, movies });
+  } catch (error) {
+    console.error("TMDB API error fetching details:", error.message);
+    res.status(500).json({
+      success: false,
+      message: `TMDB API error fetching details: ${error.message}`,
+    });
+  }
 };
 
 // Adds a single show
