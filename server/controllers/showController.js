@@ -2,17 +2,38 @@ import axios from "axios"
 import Movie from "../models/Movie.js";
 import Show from "../models/Show.js";
 
-//API to get now playing movies from TMDB API
+// --- TMDB Configuration (Base URL) ---
+const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+const TMDB_API_KEY = process.env.TMDB_API_KEY; 
+
+// API to get now playing movies from TMDB API
 export const getNowPlayingMovies = async(req,res)=>{
     try{
-        const {data} =await axios.get('https://api.themoviedb.org/3/movie/now_playing',
-            {headers:{Authorization:`Bearer ${process.env.TMDB_API_KEY}`}})
+        // ❌ FIX: Removed the {headers: {Authorization: Bearer...}} and use query parameter
+        const {data} =await axios.get(
+            `${TMDB_BASE_URL}/movie/now_playing?api_key=${TMDB_API_KEY}`
+        );
 
-            const movies = data.results;
-            res.json({success:true,movies:movies})
+        // Data filtering and structuring for safe frontend rendering
+        const rawMovies = data.results || [];
+        
+        const safeMovies = rawMovies
+            .filter(m => m.poster_path && m.title) 
+            .map(m => ({
+                id: m.id,
+                title: m.title,
+                poster_path: m.poster_path,
+                backdrop_path: m.backdrop_path,
+                release_date: m.release_date,
+                vote_average: m.vote_average,
+                // Ensure genres is a safe empty array for MovieCard.jsx
+                genres: [], 
+            }));
+
+        res.json({success:true,movies:safeMovies})
     }catch(error){
         console.error(error);
-        res.json({success:false,message:error.message})
+        res.status(error.response?.status || 500).json({success:false,message:error.message})
     }
 }
 
@@ -26,9 +47,8 @@ export const addShow = async (req,res)=>{
         if(!movie){
             //Fetch movie details and credits from TMDB API
             const [movieDetailsResponse, movieCreditsResponse] = await Promise.all([
-                axios.get(`https://api.themoviedb.org/3/movie/${movieId}`, 
-                    {headers:{Authorization:`Bearer ${process.env.TMDB_API_KEY}`}}),
-                axios.get(`https://api.themoviedb.org/3/movie/${movieId}/credits`,{headers:{Authorization:`Bearer ${process.env.TMDB_API_KEY}`}})
+                axios.get(`${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}`),
+                axios.get(`${TMDB_BASE_URL}/movie/${movieId}/credits?api_key=${TMDB_API_KEY}`)
             ]);
 
             const movieApiData = movieDetailsResponse.data;
@@ -69,13 +89,13 @@ export const addShow = async (req,res)=>{
         if(showsToCreate.length >0){
             await Show.insertMany(showsToCreate);
         }
-         res.json({success:true,message:'Show Added successfully'})
+        res.json({success:true,message:'Show Added successfully'})
     }catch(error){
         console.error(error);
-        res.json({success:false,message:error.message})
+        res.status(500).json({success:false,message:error.message})
     }
 }
-//API to get all shows  from the database
+//API to get all shows from the database
 export const getShows = async(req,res)=>{
     try{
         const shows = await Show.find({showDateTime:{$gte: new Date()}}).populate('movie').sort({showDateTime:1});
@@ -83,10 +103,10 @@ export const getShows = async(req,res)=>{
         //filter unique shows
         const uniqueShows = new Set(shows.map(show=>show.movie))
 
-        res.json({success: true,shows: Array.from(uniqueShows)})   
+        res.json({success: true,shows: Array.from(uniqueShows)}) 
     }
     catch(error){
-        res.json({success:false,message:error.message});
+        res.status(500).json({success:false,message:error.message});
     }
 }
 
@@ -105,11 +125,14 @@ export const getShow=async (req,res)=>{
             if(!dateTime[date]){
                 dateTime[date] = []
             }
-            dateTime[date].push({time:show.showDateTime,showId:show._id})
+            // Push an object containing both time and showId for the frontend
+            dateTime[date].push({time:show.showDateTime.toTimeString().split(' ')[0].slice(0,5),showId:show._id})
         })
+        
+        // Return movie data and the processed schedule
         res.json({success:true,movie,dateTime})
     }
     catch(error){
-        res.json({success:false,message:error.message});
+        res.status(500).json({success:false,message:error.message});
     }
 }

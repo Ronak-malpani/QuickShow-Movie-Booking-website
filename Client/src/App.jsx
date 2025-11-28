@@ -18,37 +18,47 @@ import { useAppContext } from './context/AppContext'
 import { SignIn } from '@clerk/clerk-react'
 import Loading from './components/Loading'
 
+// 🚀 Imports for Releases Components
+import UpcomingReleases from './pages/UpcomingReleases'; 
+import UpcomingMovieDetails from './pages/UpcomingMovieDetails'; 
+
+
 const App=()=>{
-  const isAdminRoute= useLocation().pathname.startsWith('/admin')
+    const isAdminRoute= useLocation().pathname.startsWith('/admin')
 
-  const { user } = useAppContext()
+    const { user } = useAppContext()
 
-  return(
-    <>
-    <Toaster />
-    {!isAdminRoute && <Navbar/>}
-     <Routes>
-          <Route path='/' element={<Home/>} />
-          <Route path='/movies' element={<Movies/>} />
-          <Route path='/movies/:id' element={<MoviesDetails/>} />
-          <Route path='/movies/:id/:date' element={<SeatLayout/>} />
-          <Route path='/my-bookings' element={<MyBookings/>} />
-          <Route path='/loading/:nextUrl' element={<Loading/>} />
-          <Route path='/favorite' element={<Favorite/>} /> 
-          <Route path='/admin/*' element={user? <Layout />: (
-            <div className='min-h-screen flex justify-center items-center'>
-              <SignIn fallbackRedirectUrl={'/admin'} />
-            </div>
-          )}>
-            <Route index element={<Dashboard/>} />
-            <Route path="add-shows" element={<AddShows/>} />
-            <Route path="list-shows" element={<ListShows/>} />
-            <Route path="list-bookings" element={<ListBookings/>} />
-          </Route>
-     </Routes>
-     {!isAdminRoute && <Footer />}
-    </>
-    
-  )
+    return(
+        <>
+        <Toaster />
+        {!isAdminRoute && <Navbar/>}
+          <Routes>
+              <Route path='/' element={<Home/>} />
+              <Route path='/movies' element={<Movies/>} />
+              <Route path='/movies/:id' element={<MoviesDetails/>} />
+              
+              {/*  ADDED: UPCOMING RELEASES ROUTES */}
+              <Route path='/releases' element={<UpcomingReleases />} />
+              <Route path='/upcoming/:id' element={<UpcomingMovieDetails />} />
+              
+              <Route path='/movies/:id/:date' element={<SeatLayout/>} />
+              <Route path='/my-bookings' element={<MyBookings/>} />
+              <Route path='/loading/:nextUrl' element={<Loading/>} />
+              <Route path='/favorite' element={<Favorite/>} /> 
+              <Route path='/admin/*' element={user? <Layout />: (
+                  <div className='min-h-screen flex justify-center items-center'>
+                    <SignIn fallbackRedirectUrl={'/admin'} />
+                  </div>
+              )}>
+                <Route index element={<Dashboard/>} />
+                <Route path="add-shows" element={<AddShows/>} />
+                <Route path="list-shows" element={<ListShows/>} />
+                <Route path="list-bookings" element={<ListBookings/>} />
+              </Route>
+          </Routes>
+          {!isAdminRoute && <Footer />}
+        </>
+        
+    )
 }
 export default App

@@ -9,12 +9,13 @@ import sendEmail from "../configs/nodemailer.js";
 export const inngest = new Inngest({ id: "movie-ticket-booking" });
 
 /* ------------------------------
-   USER SYNC FUNCTIONS
+    USER SYNC FUNCTIONS
 --------------------------------*/
 
 const syncUserCreation = inngest.createFunction(
   { id: "sync-user-from-clerk" },
-  { event: "clerk/user.created" },
+  // ✅ FIX: Correctly structured event trigger object
+  { event: "clerk/user.created" }, 
   async ({ event }) => {
     const { id, first_name, last_name, email_addresses, image_url } = event.data;
 
@@ -25,23 +26,25 @@ const syncUserCreation = inngest.createFunction(
       image: image_url,
     });
 
-    console.log("✅ User synced:", id);
+    console.log("User synced:", id);
   }
 );
 
 const syncUserDeletion = inngest.createFunction(
   { id: "delete-user-from-clerk" },
-  { event: "clerk/user.deleted" },
+  // ✅ FIX: Correctly structured event trigger object
+  { event: "clerk/user.deleted" }, 
   async ({ event }) => {
     const { id } = event.data;
     await User.findByIdAndDelete(id);
-    console.log("🗑️ User deleted:", id);
+    console.log("User deleted:", id);
   }
 );
 
 const syncUserUpdation = inngest.createFunction(
   { id: "update-user-from-clerk" },
-  { event: "clerk/user.updated" },
+  // ✅ FIX: Correctly structured event trigger object
+  { event: "clerk/user.updated" }, 
   async ({ event }) => {
     const { id, first_name, last_name, email_addresses, image_url } = event.data;
 
@@ -56,17 +59,18 @@ const syncUserUpdation = inngest.createFunction(
       { new: true }
     );
 
-    console.log("🔄 User updated:", id);
+    console.log("User updated:", id);
   }
 );
 
 /* ------------------------------------------
-   RELEASE SEATS AFTER 10 MIN IF NOT PAID
+    RELEASE SEATS AFTER 10 MIN IF NOT PAID
 -------------------------------------------*/
 
 const releaseSeatsAndDeleteBooking = inngest.createFunction(
   { id: "release-seats-delete-booking" },
-  { event: "app/checkpayment" },
+  // ✅ FIX: Correctly structured event trigger object
+  { event: "app/checkpayment" }, 
   async ({ event, step }) => {
     const tenMinutesLater = new Date(Date.now() + 10 * 60 * 1000);
     await step.sleepUntil("wait-for-10-minutes", tenMinutesLater);
@@ -75,7 +79,7 @@ const releaseSeatsAndDeleteBooking = inngest.createFunction(
       const bookingId = event.data.bookingId;
       const booking = await Booking.findById(bookingId);
 
-      if (!booking) return console.log("⚠️ Booking not found");
+      if (!booking) return console.log("Booking not found");
 
       if (!booking.isPaid) {
         const show = await Show.findById(booking.show);
@@ -88,22 +92,23 @@ const releaseSeatsAndDeleteBooking = inngest.createFunction(
         await show.save();
         await Booking.findByIdAndDelete(booking._id);
 
-        console.log("⛔ Booking deleted + seats released:", bookingId);
+        console.log("Booking deleted + seats released:", bookingId);
       }
     });
   }
 );
 
 /* ------------------------------------------
-   BOOKING CONFIRMATION EMAIL (FINAL)
+    BOOKING CONFIRMATION EMAIL (FINAL)
 -------------------------------------------*/
 
 const sendBookingConfirmationEmail = inngest.createFunction(
   { id: "send-booking-confirmation-email" },
-  { event: "booking/payment.success" }, // Triggered after Stripe success
+  // ✅ FIX: Correctly structured event trigger object (uses "app/show.booked" as established)
+  { event: "app/show.booked" }, 
   async ({ event }) => {
     try {
-      console.log("📩 Email function triggered...");
+      console.log("Email function triggered...");
 
       const { bookingId } = event.data;
 
@@ -125,36 +130,35 @@ const sendBookingConfirmationEmail = inngest.createFunction(
       // Sending email
       await sendEmail({
         to: user.email,
-        subject: `🎬 Booking Confirmed: ${movie.title}`,
+        subject: `Booking Confirmed: ${movie.title}`,
         htmlBody: `
           <div style="font-family: Arial; line-height: 1.5;">
             <h2>Hi ${user.name},</h2>
             <p>Your booking for <strong>"${movie.title}"</strong> is confirmed.</p>
 
             <p>
-              <strong>Date:</strong> ${new Date(booking.show.date).toLocaleDateString("en-IN")}<br/>
-              <strong>Time:</strong> ${booking.show.time}
+              <strong>Date:</strong> ${new Date(booking.show.showDateTime).toLocaleDateString("en-IN")}<br/>
+              <strong>Time:</strong> ${new Date(booking.show.showDateTime).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' })}
             </p>
 
             <p><strong>Seats:</strong> ${booking.bookedSeats.join(", ")}</p>
-            <p><strong>Amount Paid:</strong> ₹${booking.amount}</p>
+            <p><strong>Amount Paid:</strong> $${booking.amount}</p>
 
             <br/>
-            <p>Enjoy the movie! 🍿</p>
-            <p>— QuickShow Team</p>
+            <p>Enjoy the movie! - QuickShow Team</p>
           </div>
         `,
       });
 
-      console.log(`✅ Booking email sent to ${user.email}`);
+      console.log(`Booking email sent to ${user.email}`);
     } catch (error) {
-      console.error("❌ Failed to send booking email:", error);
+      console.error("Failed to send booking email:", error);
     }
   }
 );
 
 /* ------------------------------------------
-   EXPORT ALL FUNCTIONS
+    EXPORT ALL FUNCTIONS
 -------------------------------------------*/
 
 export const functions = [
