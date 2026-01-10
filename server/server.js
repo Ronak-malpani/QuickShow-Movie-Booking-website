@@ -33,7 +33,12 @@ app.post(
 
 // Normal middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: 'https://quick-show-movie-booking-website.vercel.app',
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'clerk-db-auth-token']
+}));
+
 app.use(clerkMiddleware());
 
 // API Routes
