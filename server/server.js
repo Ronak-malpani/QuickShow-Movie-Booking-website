@@ -34,16 +34,27 @@ app.post(
 // Normal middleware
 app.use(express.json());
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://quick-show-movie-booking-website.vercel.app",
+  "https://quick-show-movie-booking-website-40j9u90f9.vercel.app"
+];
+
 app.use(cors({
-  origin: [
-    'https://quick-show-movie-booking-website.vercel.app',
-    'http://localhost:5173',
-    /\.vercel\.app$/ 
-  ],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked: ${origin}`));
+    }
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'clerk-db-auth-token']
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "clerk-db-auth-token"]
 }));
+
 
 app.use(clerkMiddleware());
 
