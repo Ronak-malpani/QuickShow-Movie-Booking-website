@@ -190,8 +190,8 @@ const UpcomingReleases = () => {
       window.scrollTo(0, 0);
 
       const { data } = await axios.get(
-        `http://localhost:3000/api/movies/upcoming?page=${pageNumber}`
-      );
+      `/api/movies/upcoming?page=${pageNumber}`
+    );
 
       const filteredMovies = (data.movies || []).filter(m => m.poster_path);
 
